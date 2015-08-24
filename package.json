@@ -1,0 +1,22 @@
+{
+  "name": "virtual-view",
+  "version": "0.1.0",
+  "description": "A view for the virtual dom just like a backbone view with a few subtle differences",
+  "main": "build/virtual-view.js",
+  "dependencies": {
+    "virtual-dom": "^2.1.1"
+  },
+  "devDependencies": {
+    "de-builder": "^0.5.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hawkerboy7/virtual-view.git"
+  },
+  "author": "dexter.esajas@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hawkerboy7/virtual-view/issues"
+  },
+  "homepage": "https://github.com/hawkerboy7/virtual-view"
+}
