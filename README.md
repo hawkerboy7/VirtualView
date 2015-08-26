@@ -29,10 +29,10 @@ The `virtual-view` provides you with the following
 - [this.prepend](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L87)<br>
 	Same as append only this will prepend.
 
-- el<br>
+- [el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L20)<br>
 	Contains the DOM node
 
-- $el<br>
+- [$el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L20)<br>
 	Contains the VirtualDom node representation
 
 
@@ -50,6 +50,7 @@ VirtualView = require 'virtual-view'
 class Secondary extends VirtualView
 
 	selector: '#secondary.make-me-the-first-child'
+
 
 	initialize: ->
 
