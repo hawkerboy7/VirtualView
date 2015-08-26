@@ -46,7 +46,7 @@ class VirtualView
 		@_update()
 
 
-	removeClass: (className) ->
+	removeClass: (className) =>
 
 		remove = []
 
@@ -75,7 +75,7 @@ class VirtualView
 		@_update()
 
 
-	append: (child)->
+	append: (child) =>
 
 		# Add child
 		@$el.children.push child
@@ -84,7 +84,7 @@ class VirtualView
 		@_update()
 
 
-	prepend: (child)->
+	prepend: (child) =>
 
 		# Add child
 		@$el.children.unshift child

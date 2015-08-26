@@ -1,5 +1,6 @@
 (function() {
-  var VirtualView;
+  var VirtualView,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   window.h = require('virtual-dom/h');
 
@@ -15,6 +16,9 @@
     VirtualView.prototype.VVclasses = [];
 
     function VirtualView() {
+      this.prepend = bind(this.prepend, this);
+      this.append = bind(this.append, this);
+      this.removeClass = bind(this.removeClass, this);
       this.el = createElement(this.$el = h(this.selector, this.properties));
       if (this.$el.properties.className) {
         this.VVclasses = this.$el.properties.className.split(' ');
