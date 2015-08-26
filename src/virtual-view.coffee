@@ -1,11 +1,11 @@
 #--------------------------------------------------
 #	Virutal Dom
 #--------------------------------------------------
-window.h				= require 'virtual-dom/h'
-window.diff				= require 'virtual-dom/diff'
-window.patch			= require 'virtual-dom/patch'
-window.VText			= require 'virtual-dom/vnode/vtext'
-window.createElement	= require 'virtual-dom/create-element'
+window.h             = require 'virtual-dom/h'
+window.diff          = require 'virtual-dom/diff'
+window.patch         = require 'virtual-dom/patch'
+window.VText         = require 'virtual-dom/vnode/vtext'
+window.createElement = require 'virtual-dom/create-element'
 
 
 
