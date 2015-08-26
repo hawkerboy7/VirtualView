@@ -1,5 +1,6 @@
 (function() {
-  var VirtualView;
+  var VirtualView,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   window.h = require('virtual-dom/h');
 
@@ -7,12 +8,17 @@
 
   window.patch = require('virtual-dom/patch');
 
+  window.VText = require('virtual-dom/vnode/vtext');
+
   window.createElement = require('virtual-dom/create-element');
 
   VirtualView = (function() {
     VirtualView.prototype.VVclasses = [];
 
     function VirtualView() {
+      this.prepend = bind(this.prepend, this);
+      this.append = bind(this.append, this);
+      this.removeClass = bind(this.removeClass, this);
       this.el = createElement(this.$el = h(this.selector, this.properties));
       if (this.$el.properties.className) {
         this.VVclasses = this.$el.properties.className.split(' ');
@@ -36,7 +42,7 @@
         return;
       }
       this.$el.properties.className = (this.VVclasses = this.VVclasses.concat(add)).join(' ');
-      return this.el = patch(this.el, diff(this.el, this.$el));
+      return this._update();
     };
 
     VirtualView.prototype.removeClass = function(className) {
@@ -62,6 +68,20 @@
         classes = this.VVclasses.join(' ');
       }
       this.$el.properties.className = classes;
+      return this._update();
+    };
+
+    VirtualView.prototype.append = function(child) {
+      this.$el.children.push(child);
+      return this._update();
+    };
+
+    VirtualView.prototype.prepend = function(child) {
+      this.$el.children.unshift(child);
+      return this._update();
+    };
+
+    VirtualView.prototype._update = function() {
       return this.el = patch(this.el, diff(this.el, this.$el));
     };
 
