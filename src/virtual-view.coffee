@@ -4,6 +4,7 @@
 window.h				= require 'virtual-dom/h'
 window.diff				= require 'virtual-dom/diff'
 window.patch			= require 'virtual-dom/patch'
+window.VText			= require 'virtual-dom/vnode/vtext'
 window.createElement	= require 'virtual-dom/create-element'
 
 
@@ -41,8 +42,8 @@ class VirtualView
 		# Create class name from array
 		@$el.properties.className = (@VVclasses = @VVclasses.concat(add)).join ' '
 
-		# Set class
-		@el = patch @el, diff @el, @$el
+		# Update (v)DOM
+		@_update()
 
 
 	removeClass: (className) ->
@@ -70,7 +71,31 @@ class VirtualView
 		# Set className from array
 		@$el.properties.className = classes
 
-		# Update class in the vdom
+		# Update (v)DOM
+		@_update()
+
+
+	append: (child)->
+
+		# Add child
+		@$el.children.push child
+
+		# Update (v)DOM
+		@_update()
+
+
+	prepend: (child)->
+
+		# Add child
+		@$el.children.unshift child
+
+		# Update (v)DOM
+		@_update()
+
+
+	_update: ->
+
+		# Update the vdom
 		@el = patch @el, diff @el, @$el
 
 

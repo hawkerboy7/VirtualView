@@ -7,6 +7,8 @@
 
   window.patch = require('virtual-dom/patch');
 
+  window.VText = require('virtual-dom/vnode/vtext');
+
   window.createElement = require('virtual-dom/create-element');
 
   VirtualView = (function() {
@@ -36,7 +38,7 @@
         return;
       }
       this.$el.properties.className = (this.VVclasses = this.VVclasses.concat(add)).join(' ');
-      return this.el = patch(this.el, diff(this.el, this.$el));
+      return this._update();
     };
 
     VirtualView.prototype.removeClass = function(className) {
@@ -62,6 +64,20 @@
         classes = this.VVclasses.join(' ');
       }
       this.$el.properties.className = classes;
+      return this._update();
+    };
+
+    VirtualView.prototype.append = function(child) {
+      this.$el.children.push(child);
+      return this._update();
+    };
+
+    VirtualView.prototype.prepend = function(child) {
+      this.$el.children.unshift(child);
+      return this._update();
+    };
+
+    VirtualView.prototype._update = function() {
       return this.el = patch(this.el, diff(this.el, this.$el));
     };
 
