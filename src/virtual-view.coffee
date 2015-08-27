@@ -38,7 +38,7 @@ class VirtualView
 
 				else
 
-					# Store the handler
+					# Store the handler as function
 					func = handler
 
 				# Store function
