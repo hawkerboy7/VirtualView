@@ -18,7 +18,7 @@ class VirtualView
 
 	constructor: ->
 
-		# Set properties if not defined
+		# Define properties if not defined
 		this.properties = this.properties || {}
 
 		# Check if events have been set
