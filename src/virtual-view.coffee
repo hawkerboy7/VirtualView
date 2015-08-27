@@ -1,6 +1,8 @@
 #--------------------------------------------------
 #	Virutal Dom
 #--------------------------------------------------
+
+window.d             = require('dom-delegator')()
 window.h             = require 'virtual-dom/h'
 window.diff          = require 'virtual-dom/diff'
 window.patch         = require 'virtual-dom/patch'
@@ -15,6 +17,32 @@ class VirtualView
 
 
 	constructor: ->
+
+		# Set properties if not defined
+		this.properties = this.properties || {}
+
+		# Check if events have been set
+		if events = this.events
+
+			# Loop over all events
+			for key of events
+
+				# Get event handler
+				handler = events[key]
+
+				# Check if string is provided
+				if typeof handler is 'string' or handler instanceof String
+
+					# Store function
+					func = @[handler]
+
+				else
+
+					# Store the handler
+					func = handler
+
+				# Store function
+				this.properties["ev-#{key}"] = func
 
 		# Create VirtualNode and the DOM element
 		@el = createElement @$el = h this.selector, this.properties

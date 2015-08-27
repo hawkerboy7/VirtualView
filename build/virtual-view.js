@@ -2,6 +2,8 @@
   var VirtualView,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
+  window.d = require('dom-delegator')();
+
   window.h = require('virtual-dom/h');
 
   window.diff = require('virtual-dom/diff');
@@ -19,6 +21,19 @@
       this.prepend = bind(this.prepend, this);
       this.append = bind(this.append, this);
       this.removeClass = bind(this.removeClass, this);
+      var events, func, handler, key;
+      this.properties = this.properties || {};
+      if (events = this.events) {
+        for (key in events) {
+          handler = events[key];
+          if (typeof handler === 'string' || handler instanceof String) {
+            func = this[handler];
+          } else {
+            func = handler;
+          }
+          this.properties["ev-" + key] = func;
+        }
+      }
       this.el = createElement(this.$el = h(this.selector, this.properties));
       if (this.$el.properties.className) {
         this.VVclasses = this.$el.properties.className.split(' ');
