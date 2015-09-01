@@ -54,7 +54,7 @@ class VirtualView
 		@initialize() if @initialize
 
 
-	addClass: (className) ->
+	addClass: (className) =>
 
 		add = []
 
@@ -72,7 +72,7 @@ class VirtualView
 		@$el.properties.className = (@VVclasses = @VVclasses.concat(add)).join ' '
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
 	removeClass: (className) =>
@@ -102,7 +102,7 @@ class VirtualView
 		@$el.properties.className = classes
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
 	append: (child) =>
@@ -111,7 +111,7 @@ class VirtualView
 		@$el.children.push child
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
 	prepend: (child) =>
@@ -120,10 +120,10 @@ class VirtualView
 		@$el.children.unshift child
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
-	_update: ->
+	update: =>
 
 		# Update the (v)DOM
 		@el = patch @el, diff @el, @$el

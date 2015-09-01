@@ -18,9 +18,11 @@
     VirtualView.prototype.VVclasses = [];
 
     function VirtualView() {
+      this.update = bind(this.update, this);
       this.prepend = bind(this.prepend, this);
       this.append = bind(this.append, this);
       this.removeClass = bind(this.removeClass, this);
+      this.addClass = bind(this.addClass, this);
       var events, func, handler, key;
       this.properties = this.properties || {};
       if (events = this.events) {
@@ -57,7 +59,7 @@
         return;
       }
       this.$el.properties.className = (this.VVclasses = this.VVclasses.concat(add)).join(' ');
-      return this._update();
+      return this.update();
     };
 
     VirtualView.prototype.removeClass = function(className) {
@@ -83,20 +85,20 @@
         classes = this.VVclasses.join(' ');
       }
       this.$el.properties.className = classes;
-      return this._update();
+      return this.update();
     };
 
     VirtualView.prototype.append = function(child) {
       this.$el.children.push(child);
-      return this._update();
+      return this.update();
     };
 
     VirtualView.prototype.prepend = function(child) {
       this.$el.children.unshift(child);
-      return this._update();
+      return this.update();
     };
 
-    VirtualView.prototype._update = function() {
+    VirtualView.prototype.update = function() {
       return this.el = patch(this.el, diff(this.el, this.$el));
     };
 
