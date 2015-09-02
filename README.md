@@ -12,10 +12,10 @@
 
 The `virtual-view` provides you with the following
 
-- [el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L48)<br>
+- [el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L65)<br>
 	Contains the DOM node
 
-- [$el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L48)<br>
+- [$el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L65)<br>
 	Contains the VirtualDOM node representation ([VirtualNode](https://github.com/Matt-Esch/virtual-dom/blob/master/virtual-hyperscript/README.md))
 
 - [selector](https://github.com/Matt-Esch/virtual-dom/blob/master/virtual-hyperscript/README.md)<br>
@@ -23,20 +23,23 @@ The `virtual-view` provides you with the following
 	In here you can add a tagName, id and className all at once.
 	The sting will be parsed e.g. `span#super-class.special-layout.show`.
 
-- [this.addClass](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L57)<br>
+- [this.addClass](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L74)<br>
 	This function allows you to add a single class or multiple classes to the virtual tree. It only adds the unique ones.
 
-- [this.removeClass](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L78)<br>
+- [this.removeClass](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L95)<br>
 	This function allows you to remove a single class or multiple classes from the virtual tree. It removes them if they are found.
 
-- [this.append](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L108)<br>
-	This function allows you to append a child to the virtual tree. It should eiter be a [VText](https://github.com/Matt-Esch/virtual-dom#example---creating-a-vtree-using-the-objects-directly) or a $el (which is a [VirtualNode](https://github.com/Matt-Esch/virtual-dom/blob/master/virtual-hyperscript/README.md))
+- [this.append](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L125)<br>
+	This function allows you to append a child to the virtual tree. It should either be a [VText](https://github.com/Matt-Esch/virtual-dom#example---creating-a-vtree-using-the-objects-directly) or an $el ([VirtualNode](https://github.com/Matt-Esch/virtual-dom/blob/master/virtual-hyperscript/README.md))
 
-- [this.prepend](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L117)<br>
+- [this.prepend](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L140)<br>
 	Same as append only this will prepend.
 
-- [this.update](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L126)<br>
-	This function allows you to re-render the @$el (VirtualDOM node). You can call this after you've changed it's atributes. However classes should be changed trough the addClass and removeClass functions.
+- [this.update](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L159)<br>
+	This function allows you to re-render the $el. You can call this after you've changed it's atributes. However classes should be changed trough the addClass and removeClass functions.
+
+- [this.remove](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L168)<br>
+	Removes element from the DOM and VirtualDOM
 
 
 ## Example
@@ -58,6 +61,13 @@ class Secondary extends VirtualView
 
 		# Add a VText
 		@append new VText 'I am Secondary (the first child)'
+
+		setTimeout(=>
+
+			# Remove this Virtual Node
+			@remove()
+
+		,5000)
 
 
 
@@ -105,4 +115,7 @@ document.body.insertBefore (new Main).el, document.body.firstChild
 
 
 #### Obviously it's not done =)
-It still needs the event listener support for example.
+
+this.remove still needs to be analized. It's not at a maximum effencientcy, also i am quite sure not everything is removed from memory completely.
+
+after removal all events should be removed as well (this should be checked).

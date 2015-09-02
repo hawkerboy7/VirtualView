@@ -1,6 +1,6 @@
 {
-  "name": "virtual-view",
-  "version": "0.2.0",
+  "name": "virtualview",
+  "version": "0.2.0-alpha",
   "description": "A view for the virtual dom similar to a backbone view",
   "main": "build/virtual-view.js",
   "dependencies": {
