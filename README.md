@@ -67,7 +67,7 @@ class Secondary extends VirtualView
 			# Remove this Virtual Node
 			@remove()
 
-		,5000)
+		,8000)
 
 
 
@@ -89,7 +89,7 @@ class Main extends VirtualView
 		@append new VText 'append-2'
 
 		# Add a Virtual Node
-		@prepend (new Secondary).$el
+		@prepend new Secondary
 
 		# Add multiple classes
 		@addClass 'test1 test2 test3 test4'
