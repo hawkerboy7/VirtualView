@@ -2,6 +2,8 @@
   var VirtualView,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
+  window.d = require('dom-delegator')();
+
   window.h = require('virtual-dom/h');
 
   window.diff = require('virtual-dom/diff');
@@ -13,12 +15,41 @@
   window.createElement = require('virtual-dom/create-element');
 
   VirtualView = (function() {
+    var counter, links;
+
+    links = {};
+
+    counter = 1;
+
     VirtualView.prototype.VVclasses = [];
 
     function VirtualView() {
+      this.remove = bind(this.remove, this);
+      this.update = bind(this.update, this);
       this.prepend = bind(this.prepend, this);
       this.append = bind(this.append, this);
       this.removeClass = bind(this.removeClass, this);
+      this.addClass = bind(this.addClass, this);
+      var events, func, handler, key;
+      this.id = counter++;
+      links[this.id] = {};
+      this.properties = this.properties || {};
+      if (this.id === 1) {
+        window.VV = {
+          main: this
+        };
+      }
+      if (events = this.events) {
+        for (key in events) {
+          handler = events[key];
+          if (typeof handler === 'string' || handler instanceof String) {
+            func = this[handler];
+          } else {
+            func = handler;
+          }
+          this.properties["ev-" + key] = func;
+        }
+      }
       this.el = createElement(this.$el = h(this.selector, this.properties));
       if (this.$el.properties.className) {
         this.VVclasses = this.$el.properties.className.split(' ');
@@ -42,7 +73,7 @@
         return;
       }
       this.$el.properties.className = (this.VVclasses = this.VVclasses.concat(add)).join(' ');
-      return this._update();
+      return this.update();
     };
 
     VirtualView.prototype.removeClass = function(className) {
@@ -68,21 +99,44 @@
         classes = this.VVclasses.join(' ');
       }
       this.$el.properties.className = classes;
-      return this._update();
+      return this.update();
     };
 
-    VirtualView.prototype.append = function(child) {
-      this.$el.children.push(child);
-      return this._update();
+    VirtualView.prototype.append = function(vView) {
+      vView.parent = this;
+      links[this.id][vView.id] = this.$el.children.length;
+      this.$el.children.push(vView.$el);
+      return this.update();
     };
 
-    VirtualView.prototype.prepend = function(child) {
-      this.$el.children.unshift(child);
-      return this._update();
+    VirtualView.prototype.prepend = function(vView) {
+      var key;
+      vView.parent = this;
+      for (key in links) {
+        links[this.id][key]++;
+      }
+      links[this.id][vView.id] = 0;
+      this.$el.children.unshift(vView.$el);
+      return this.update();
     };
 
-    VirtualView.prototype._update = function() {
-      return this.el = patch(this.el, diff(this.el, this.$el));
+    VirtualView.prototype.update = function() {
+      var ref;
+      this.el = patch(this.el, diff(this.el, this.$el));
+      if ((typeof VV !== "undefined" && VV !== null ? VV.main : void 0) !== this) {
+        return typeof VV !== "undefined" && VV !== null ? (ref = VV.main) != null ? ref.update() : void 0 : void 0;
+      }
+    };
+
+    VirtualView.prototype.remove = function() {
+      var remove;
+      if (this.parent) {
+        remove = links[this.parent.id][this.id];
+        this.parent.$el.children.splice(remove, 1);
+        return this.parent.update();
+      } else {
+        return this.el.parentNode.removeChild(this.el);
+      }
     };
 
     return VirtualView;

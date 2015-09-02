@@ -1,20 +1,65 @@
 #--------------------------------------------------
 #	Virutal Dom
 #--------------------------------------------------
-window.h				= require 'virtual-dom/h'
-window.diff				= require 'virtual-dom/diff'
-window.patch			= require 'virtual-dom/patch'
-window.VText			= require 'virtual-dom/vnode/vtext'
-window.createElement	= require 'virtual-dom/create-element'
+
+window.d             = require('dom-delegator')()
+window.h             = require 'virtual-dom/h'
+window.diff          = require 'virtual-dom/diff'
+window.patch         = require 'virtual-dom/patch'
+window.VText         = require 'virtual-dom/vnode/vtext'
+window.createElement = require 'virtual-dom/create-element'
+
 
 
 
 class VirtualView
 
+	links   = {}
+	counter = 1
+
 	VVclasses : []
 
 
 	constructor: ->
+
+		# Set and increase id counter
+		@id = counter++
+
+		# Link storage
+		links[@id] = {}
+
+		# Define properties if not defined
+		this.properties = this.properties || {}
+
+		# Main view
+		if @id is 1
+
+			window.VV =
+				main: @
+
+
+		# Check if events have been set
+		if events = this.events
+
+			# Loop over all events
+			for key of events
+
+				# Get event handler
+				handler = events[key]
+
+				# Check if string is provided
+				if typeof handler is 'string' or handler instanceof String
+
+					# Store function
+					func = @[handler]
+
+				else
+
+					# Store the handler as function
+					func = handler
+
+				# Store function
+				this.properties["ev-#{key}"] = func
 
 		# Create VirtualNode and the DOM element
 		@el = createElement @$el = h this.selector, this.properties
@@ -26,7 +71,7 @@ class VirtualView
 		@initialize() if @initialize
 
 
-	addClass: (className) ->
+	addClass: (className) =>
 
 		add = []
 
@@ -44,7 +89,7 @@ class VirtualView
 		@$el.properties.className = (@VVclasses = @VVclasses.concat(add)).join ' '
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
 	removeClass: (className) =>
@@ -74,31 +119,69 @@ class VirtualView
 		@$el.properties.className = classes
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
-	append: (child) =>
+	append: (vView) =>
+
+		# Provide the vView with a parent
+		vView.parent = @
+
+		# Store link id
+		links[@id][vView.id] = @$el.children.length
 
 		# Append a virtual child
-		@$el.children.push child
+		@$el.children.push vView.$el
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
-	prepend: (child) =>
+	prepend: (vView) =>
+
+		# Provide the vView with a parent
+		vView.parent = @
+
+		# increse all link id's
+		for key of links
+			links[@id][key]++
+
+		# Store link id
+		links[@id][vView.id] = 0
 
 		# Prepend a virtual child
-		@$el.children.unshift child
+		@$el.children.unshift vView.$el
 
 		# Update (v)DOM
-		@_update()
+		@update()
 
 
-	_update: ->
+	update: =>
 
 		# Update the (v)DOM
 		@el = patch @el, diff @el, @$el
+
+		# Update parent
+		VV?.main?.update() if VV?.main isnt @
+
+
+	remove: =>
+
+		if @parent
+
+			# Remove index
+			remove = links[@parent.id][@id]
+
+			# Remove item
+			@parent.$el.children.splice remove, 1
+
+			# Update parent
+			@parent.update()
+
+		else
+
+			# Remove trough parent
+			@el.parentNode.removeChild @el
 
 
 
