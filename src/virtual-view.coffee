@@ -34,6 +34,7 @@ class VirtualView
 		# Main view
 		if @id is 1
 
+			# Virtual view storage
 			window.VV =
 				main: @
 
@@ -121,7 +122,9 @@ class VirtualView
 		@update()
 
 
-	append: (vView) =>
+	append: (vView, silent) =>
+
+		console.log 'silent: ', silent
 
 		# Check if string is provided
 		if typeof vView is 'string' or vView instanceof String
@@ -130,8 +133,6 @@ class VirtualView
 			child = new VText vView
 
 		else return if not (child = vView?.$el)
-
-		console.log 'child', child
 
 		# Provide the vView with a parent
 		vView.parent = @
@@ -180,6 +181,8 @@ class VirtualView
 
 		# Update parent
 		VV?.main?.update() if VV?.main isnt @
+
+		@
 
 
 	remove: =>

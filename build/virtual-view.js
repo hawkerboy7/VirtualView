@@ -102,8 +102,9 @@
       return this.update();
     };
 
-    VirtualView.prototype.append = function(vView) {
+    VirtualView.prototype.append = function(vView, silent) {
       var child;
+      console.log('silent: ', silent);
       if (typeof vView === 'string' || vView instanceof String) {
         child = new VText(vView);
       } else {
@@ -111,7 +112,6 @@
           return;
         }
       }
-      console.log('child', child);
       vView.parent = this;
       links[this.id][vView.id] = this.$el.children.length;
       this.$el.children.push(child);
@@ -137,8 +137,13 @@
       var ref;
       this.el = patch(this.el, diff(this.el, this.$el));
       if ((typeof VV !== "undefined" && VV !== null ? VV.main : void 0) !== this) {
-        return typeof VV !== "undefined" && VV !== null ? (ref = VV.main) != null ? ref.update() : void 0 : void 0;
+        if (typeof VV !== "undefined" && VV !== null) {
+          if ((ref = VV.main) != null) {
+            ref.update();
+          }
+        }
       }
+      return this;
     };
 
     VirtualView.prototype.remove = function() {
