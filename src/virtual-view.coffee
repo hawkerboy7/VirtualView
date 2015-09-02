@@ -37,7 +37,6 @@ class VirtualView
 			window.VV =
 				main: @
 
-
 		# Check if events have been set
 		if events = this.events
 
@@ -124,14 +123,24 @@ class VirtualView
 
 	append: (vView) =>
 
+		# Check if string is provided
+		if typeof vView is 'string' or vView instanceof String
+
+			# Create VirtualNode text
+			child = new VText vView
+
+		else return if not (child = vView?.$el)
+
+		console.log 'child', child
+
 		# Provide the vView with a parent
 		vView.parent = @
 
 		# Store link id
 		links[@id][vView.id] = @$el.children.length
 
-		# Append a virtual child
-		@$el.children.push vView.$el
+		# Append a VirtualNode child
+		@$el.children.push child
 
 		# Update (v)DOM
 		@update()
@@ -142,12 +151,20 @@ class VirtualView
 		# Provide the vView with a parent
 		vView.parent = @
 
-		# increse all link id's
-		for key of links
-			links[@id][key]++
+		# Save links + id
+		links_connected = links[@id]
+
+		# Increse all link id's
+		for key of links_connected
+
+			# Guard
+			return if not links_connected.hasOwnProperty key
+
+			# Increase count
+			links_connected[key]++
 
 		# Store link id
-		links[@id][vView.id] = 0
+		links_connected[vView.id] = 0
 
 		# Prepend a virtual child
 		@$el.children.unshift vView.$el
@@ -182,6 +199,11 @@ class VirtualView
 
 			# Remove trough parent
 			@el.parentNode.removeChild @el
+
+
+	error = (code)->
+
+		console.log 'Error code:', 1
 
 
 

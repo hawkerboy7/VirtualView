@@ -15,7 +15,7 @@
   window.createElement = require('virtual-dom/create-element');
 
   VirtualView = (function() {
-    var counter, links;
+    var counter, error, links;
 
     links = {};
 
@@ -103,19 +103,32 @@
     };
 
     VirtualView.prototype.append = function(vView) {
+      var child;
+      if (typeof vView === 'string' || vView instanceof String) {
+        child = new VText(vView);
+      } else {
+        if (!(child = vView != null ? vView.$el : void 0)) {
+          return;
+        }
+      }
+      console.log('child', child);
       vView.parent = this;
       links[this.id][vView.id] = this.$el.children.length;
-      this.$el.children.push(vView.$el);
+      this.$el.children.push(child);
       return this.update();
     };
 
     VirtualView.prototype.prepend = function(vView) {
-      var key;
+      var key, links_connected;
       vView.parent = this;
-      for (key in links) {
-        links[this.id][key]++;
+      links_connected = links[this.id];
+      for (key in links_connected) {
+        if (!links_connected.hasOwnProperty(key)) {
+          return;
+        }
+        links_connected[key]++;
       }
-      links[this.id][vView.id] = 0;
+      links_connected[vView.id] = 0;
       this.$el.children.unshift(vView.$el);
       return this.update();
     };
@@ -137,6 +150,10 @@
       } else {
         return this.el.parentNode.removeChild(this.el);
       }
+    };
+
+    error = function(code) {
+      return console.log('Error code:', 1);
     };
 
     return VirtualView;
