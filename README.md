@@ -83,7 +83,7 @@ class Primary extends VirtualView
 	selector: '#primary.make-me-the-first-child'
 
 	events:
-		'click' : 'remove'
+		'click' : 'removeMe'
 
 
 	initialize: ->
@@ -91,6 +91,10 @@ class Primary extends VirtualView
 		# Add a string
 		@append 'I am Primary (the first child)'
 
+
+	removeMe: =>
+
+		@remove()
 
 
 class Main extends VirtualView
