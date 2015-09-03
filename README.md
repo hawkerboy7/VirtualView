@@ -4,7 +4,7 @@
 
 ## What is it?
 
-`virtual-view` is a view for the [virtual dom](https://github.com/Matt-Esch/virtual-dom) similar to a [backbone view](http://backbonejs.org/#View).
+The `virtual-view` is a view for the [virtual dom](https://github.com/Matt-Esch/virtual-dom) similar to a [backbone view](http://backbonejs.org/#View).
 
 
 
@@ -21,10 +21,10 @@ class Main extends VirtualView
 	selector: '#main'
 
 
-# Main will now be a 'root' Virtual View and also have the .el available
+# Main will now be a 'root' Virtual View and will also have the .el available
 main = new Main root: true
 
-main.el # => Contains the DOM node
+main.el # => Contains the DOM node (<div id="main"></div>)
 
 # sub will be a regular Virtual View
 sub = new Main
@@ -48,22 +48,22 @@ The `virtual-view` provides you with the following
 	In here you can add a tagName, id and className all at once.
 	The sting will be parsed e.g. `span#super-class.special-layout.show`.
 
-- [this.addClass](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L74)<br>
+- [this.addClass( String )](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L79)<br>
 	This function allows you to add a single class or multiple classes to the virtual tree. It only adds the unique ones.
 
-- [this.removeClass](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L95)<br>
+- [this.removeClass( String )](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L100)<br>
 	This function allows you to remove a single class or multiple classes from the virtual tree. It removes them if they are found.
 
-- [this.append](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L125)<br>
-	This function allows you to append a child to the virtual tree. It should either be a [VText](https://github.com/Matt-Esch/virtual-dom#example---creating-a-vtree-using-the-objects-directly) or a VirtualView
+- [this.append( String or VirtualView [, Param {silent:true}] )](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L130)<br>
+	This function allows you to append a child to the virtual tree. The `silent` param allows you to append without triggering the update function on the Root Node. This way you won't unnessisarily render when appending or prepending multiple Virtual Views.
 
-- [this.prepend](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L140)<br>
+- [this.prepend( String or VirtualView [, Param {silent:true}] )](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L155)<br>
 	Same as append only this will prepend.
 
-- [this.update](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L159)<br>
-	This function allows you to re-render the Root Node. You can call this after you've changed it's atributes. However classes should be changed trough the addClass and removeClass functions.
+- [this.update()](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L192)<br>
+	This function allows you to re-render the Root Node. You can call this after you've changed atributes on any Virtual View. However classes should be changed trough the addClass and removeClass functions.
 
-- [this.remove](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L168)<br>
+- [this.remove()](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L213)<br>
 	Removes element from the DOM and VirtualDOM
 
 
@@ -138,6 +138,10 @@ document.body.insertBefore (new Main root: true).el, document.body.firstChild
 
 ## It's not done yet!
 Up next:
+
+- Remove bug (multiple children cannot be removed out of order yet)
+
+- Reverse the silent argument, all virtual dom manipulations will be 'silent' update() has to be called to update the DOM or an argument `silent: false`.
 
 - [this.children]() This function will allow you to set a VirtualNode's children all at once.
 

@@ -1,14 +1,14 @@
 #--------------------------------------------------
-#	Virutal Dom
+#	Virutal View Modules
 #--------------------------------------------------
-clone                = require 'clone'
-window.d             = require('dom-delegator')()
-window.h             = require 'virtual-dom/h'
-window.diff          = require 'virtual-dom/diff'
-window.patch         = require 'virtual-dom/patch'
-window.VText         = require 'virtual-dom/vnode/vtext'
-window.isVNode       = require 'virtual-dom/vnode/is-vnode'
-window.createElement = require 'virtual-dom/create-element'
+d             = require('dom-delegator')()
+h             = require 'virtual-dom/h'
+clone         = require 'clone'
+diff          = require 'virtual-dom/diff'
+patch         = require 'virtual-dom/patch'
+VText         = require 'virtual-dom/vnode/vtext'
+isVNode       = require 'virtual-dom/vnode/is-vnode'
+createElement = require 'virtual-dom/create-element'
 
 
 
@@ -17,19 +17,31 @@ class VirtualView
 	links   = {}
 	counter = 1
 
-	VVclasses : []
 
+	constructor: ->
 
-	constructor: (rootNode) ->
+		@VV = new class VV
+
+		# Retrieve arguments
+		args = Array.prototype.slice.call arguments
+
+		# Check if root was provided
+		if rootNode = args[0]?.root
+
+			# Delete root from the provided arguments
+			delete args[0].root
+
+			# Remove the root property
+			args.shift() if Object.keys(args[0]).length is 0
 
 		# Set and increase id counter
-		@id = counter++
+		@VV.vid = counter++
 
 		# Link storage
-		links[@id] = {}
+		links[@VV.vid] = {}
 
 		# Define properties if not defined
-		this.properties = this.properties || {}
+		properties = properties || {}
 
 		# Check if events have been set
 		if events = this.events
@@ -41,7 +53,7 @@ class VirtualView
 				handler = events[key]
 
 				# Check if string is provided
-				if typeof handler is 'string' or handler instanceof String
+				if isString handler
 
 					# Store function
 					func = @[handler]
@@ -52,31 +64,34 @@ class VirtualView
 					func = handler
 
 				# Store function
-				this.properties["ev-#{key}"] = func
+				properties["ev-#{key}"] = func
 
 		# Create VirtualNode
-		@$el = h this.selector, this.properties
+		@VV.$el = h this.selector, properties
 
 		# Store classes
-		@VVclasses = @$el.properties.className.split ' ' if @$el.properties.className
+		@VV.classes = @VV.$el.properties.className.split ' ' if @VV.$el.properties.className
 
 		# Root Node extra's
 		if rootNode
 
 			# Store clone from $el for later use
-			@$elPrevious = clone @$el
+			@VV.$elPrevious = clone @VV.$el
 
 			# Store root VirtualNode
 			window.VV = @
 
 			# Provide a DOM node
-			@el = createElement @$el
+			@el = createElement @VV.$el
 
 		# Run initialize if set
-		@initialize() if @initialize
+		@initialize.apply @, args if @initialize
 
 
-	addClass: (className) =>
+	addClass: (className) ->
+
+		# Block non strings
+		return error 2 if not isString className
 
 		add = []
 
@@ -84,20 +99,23 @@ class VirtualView
 		for name in className.split ' '
 
 			# Add className if not found
-			add.push name if @VVclasses.indexOf(name) is -1
+			add.push name if @VV.classes.indexOf(name) is -1
 
 		# Guard: Only continue if there are classes to be added
 		return if add.length is 0
 
 		# Create a one-string className from the classNames array
 		# TODO: don't use concat (lower performance than a loop?)
-		@$el.properties.className = (@VVclasses = @VVclasses.concat(add)).join ' '
+		@VV.$el.properties.className = (@VV.classes = @VV.classes.concat(add)).join ' '
 
 		# Update (v)DOM
 		@update()
 
 
-	removeClass: (className) =>
+	removeClass: (className) ->
+
+		# Block non strings
+		return error 2 if not isString className
 
 		remove = []
 
@@ -105,37 +123,46 @@ class VirtualView
 		for name in className.split ' '
 
 			# Add className if found
-			remove.push name if @VVclasses.indexOf(name) isnt -1
+			remove.push name if @VV.classes.indexOf(name) isnt -1
 
 		# Guard: Only continue if there are classes to be removed
 		return if remove.length is 0
 
-		# Remove classes from VVclasses
+		# Remove classes from VV.classes
 		# TODO: don't use .filter (lower performance than a loop?)
-		@VVclasses = @VVclasses.filter((i) => return remove.indexOf(i) < 0);
+		@VV.classes = @VV.classes.filter((i) -> return remove.indexOf(i) < 0);
 
 		# No classes by default
 		classes = undefined
 
 		# Create classes string if there are classes left
-		classes = @VVclasses.join ' ' if @VVclasses.length isnt 0
+		classes = @VV.classes.join ' ' if @VV.classes.length isnt 0
 
 		# Set className from the new classes array
-		@$el.properties.className = classes
+		@VV.$el.properties.className = classes
 
 		# Update (v)DOM
 		@update()
 
 
-	append: (vView) =>
+	append: (vView, silent) ->
 
 		# Check if string is provided
-		if typeof vView is 'string' or vView instanceof String
+		if isString vView
 
 			# Create VirtualNode text
-			child = new VText vView
+			vView =
+				$el: new VText vView
+				VV:
+					vid: counter++
 
-		else if not ((child = vView.$el) and isVNode(child))
+			# Store $el as child
+			child = vView.$el
+
+			# Link storage
+			links[vView.VV.vid] = {}
+
+		else if not ((child = vView.VV.$el) and isVNode(child))
 
 			return error 1
 
@@ -143,19 +170,19 @@ class VirtualView
 		vView.parent = @
 
 		# Store link id
-		links[@id][vView.id] = @$el.children.length
+		links[@VV.vid][vView.VV.vid] = @VV.$el.children.length
 
 		# Append a VirtualNode child
-		@$el.children.push child
+		@VV.$el.children.push child
 
 		# Update (v)DOM
-		@update()
+		@update silent
 
 
-	prepend: (vView) =>
+	prepend: (vView, silent) ->
 
 		# Check if string is provided
-		if typeof vView is 'string' or vView instanceof String
+		if isString vView
 
 			# Create VirtualNode text
 			child = new VText vView
@@ -168,7 +195,7 @@ class VirtualView
 		vView.parent = @
 
 		# Save links + id
-		links_connected = links[@id]
+		links_connected = links[@VV.vid]
 
 		# Increse all link id's
 		for key of links_connected
@@ -183,37 +210,42 @@ class VirtualView
 		links_connected[vView.id] = 0
 
 		# Prepend a virtual child
-		@$el.children.unshift child
+		@VV.$el.children.unshift child
 
 		# Update (v)DOM
-		@update()
+		@update silent
 
 
-	update: =>
+	update: (silent) ->
 
 		if VV is @
 
+			# Don't patch the (v)DOM
+			return if silent
+
 			# Update (v)DOM
-			@el = patch @el, diff @$elPrevious, @$el
+			@el = patch @el, diff @VV.$elPrevious, @VV.$el
 
 			# Store clone of 'old' $el
-			@$elPrevious = clone @$el
+			@VV.$elPrevious = clone @VV.$el
 
 		else
 
 			# Update rootNode
-			VV.update()
+			VV.update silent
+
+		@
 
 
-	remove: =>
+	remove: ->
 
 		if @parent
 
 			# Remove index
-			remove = links[@parent.id][@id]
+			remove = links[@parent.VV.vid][@VV.vid]
 
 			# Remove item
-			@parent.$el.children.splice remove, 1
+			@parent.VV.$el.children.splice remove, 1
 
 			# Update parent
 			@parent.update()
@@ -224,12 +256,18 @@ class VirtualView
 			@el.parentNode.removeChild @el
 
 
-	error = (code)->
+	error = (code) ->
 
 		console.log "Error code: #{code}"
 
 		console.log 'Only a "string" or a "VirtualNode" is a valid input' if code is 1
 
+		console.log 'Only a "string" is a valid input' if code is 2
+
+
+	isString = (string) ->
+
+		typeof string is 'string' or string instanceof String
 
 
 

@@ -1,133 +1,148 @@
 (function() {
-  var VirtualView, clone,
-    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var VText, VirtualView, clone, createElement, d, diff, h, isVNode, patch;
+
+  d = require('dom-delegator')();
+
+  h = require('virtual-dom/h');
 
   clone = require('clone');
 
-  window.d = require('dom-delegator')();
+  diff = require('virtual-dom/diff');
 
-  window.h = require('virtual-dom/h');
+  patch = require('virtual-dom/patch');
 
-  window.diff = require('virtual-dom/diff');
+  VText = require('virtual-dom/vnode/vtext');
 
-  window.patch = require('virtual-dom/patch');
+  isVNode = require('virtual-dom/vnode/is-vnode');
 
-  window.VText = require('virtual-dom/vnode/vtext');
-
-  window.isVNode = require('virtual-dom/vnode/is-vnode');
-
-  window.createElement = require('virtual-dom/create-element');
+  createElement = require('virtual-dom/create-element');
 
   VirtualView = (function() {
-    var counter, error, links;
+    var counter, error, isString, links;
 
     links = {};
 
     counter = 1;
 
-    VirtualView.prototype.VVclasses = [];
+    function VirtualView() {
+      var VV, args, events, func, handler, key, properties, ref, rootNode;
+      this.VV = new (VV = (function() {
+        function VV() {}
 
-    function VirtualView(rootNode) {
-      this.remove = bind(this.remove, this);
-      this.update = bind(this.update, this);
-      this.prepend = bind(this.prepend, this);
-      this.append = bind(this.append, this);
-      this.removeClass = bind(this.removeClass, this);
-      this.addClass = bind(this.addClass, this);
-      var events, func, handler, key;
-      this.id = counter++;
-      links[this.id] = {};
-      this.properties = this.properties || {};
+        return VV;
+
+      })());
+      args = Array.prototype.slice.call(arguments);
+      if (rootNode = (ref = args[0]) != null ? ref.root : void 0) {
+        delete args[0].root;
+        if (Object.keys(args[0]).length === 0) {
+          args.shift();
+        }
+      }
+      this.VV.vid = counter++;
+      links[this.VV.vid] = {};
+      properties = properties || {};
       if (events = this.events) {
         for (key in events) {
           handler = events[key];
-          if (typeof handler === 'string' || handler instanceof String) {
+          if (isString(handler)) {
             func = this[handler];
           } else {
             func = handler;
           }
-          this.properties["ev-" + key] = func;
+          properties["ev-" + key] = func;
         }
       }
-      this.$el = h(this.selector, this.properties);
-      if (this.$el.properties.className) {
-        this.VVclasses = this.$el.properties.className.split(' ');
+      this.VV.$el = h(this.selector, properties);
+      if (this.VV.$el.properties.className) {
+        this.VV.classes = this.VV.$el.properties.className.split(' ');
       }
       if (rootNode) {
-        this.$elPrevious = clone(this.$el);
+        this.VV.$elPrevious = clone(this.VV.$el);
         window.VV = this;
-        this.el = createElement(this.$el);
+        this.el = createElement(this.VV.$el);
       }
       if (this.initialize) {
-        this.initialize();
+        this.initialize.apply(this, args);
       }
     }
 
     VirtualView.prototype.addClass = function(className) {
       var add, j, len, name, ref;
+      if (!isString(className)) {
+        return error(2);
+      }
       add = [];
       ref = className.split(' ');
       for (j = 0, len = ref.length; j < len; j++) {
         name = ref[j];
-        if (this.VVclasses.indexOf(name) === -1) {
+        if (this.VV.classes.indexOf(name) === -1) {
           add.push(name);
         }
       }
       if (add.length === 0) {
         return;
       }
-      this.$el.properties.className = (this.VVclasses = this.VVclasses.concat(add)).join(' ');
+      this.VV.$el.properties.className = (this.VV.classes = this.VV.classes.concat(add)).join(' ');
       return this.update();
     };
 
     VirtualView.prototype.removeClass = function(className) {
       var classes, j, len, name, ref, remove;
+      if (!isString(className)) {
+        return error(2);
+      }
       remove = [];
       ref = className.split(' ');
       for (j = 0, len = ref.length; j < len; j++) {
         name = ref[j];
-        if (this.VVclasses.indexOf(name) !== -1) {
+        if (this.VV.classes.indexOf(name) !== -1) {
           remove.push(name);
         }
       }
       if (remove.length === 0) {
         return;
       }
-      this.VVclasses = this.VVclasses.filter((function(_this) {
-        return function(i) {
-          return remove.indexOf(i) < 0;
-        };
-      })(this));
+      this.VV.classes = this.VV.classes.filter(function(i) {
+        return remove.indexOf(i) < 0;
+      });
       classes = void 0;
-      if (this.VVclasses.length !== 0) {
-        classes = this.VVclasses.join(' ');
+      if (this.VV.classes.length !== 0) {
+        classes = this.VV.classes.join(' ');
       }
-      this.$el.properties.className = classes;
+      this.VV.$el.properties.className = classes;
       return this.update();
     };
 
-    VirtualView.prototype.append = function(vView) {
+    VirtualView.prototype.append = function(vView, silent) {
       var child;
-      if (typeof vView === 'string' || vView instanceof String) {
-        child = new VText(vView);
-      } else if (!((child = vView.$el) && isVNode(child))) {
+      if (isString(vView)) {
+        vView = {
+          $el: new VText(vView),
+          VV: {
+            vid: counter++
+          }
+        };
+        child = vView.$el;
+        links[vView.VV.vid] = {};
+      } else if (!((child = vView.VV.$el) && isVNode(child))) {
         return error(1);
       }
       vView.parent = this;
-      links[this.id][vView.id] = this.$el.children.length;
-      this.$el.children.push(child);
-      return this.update();
+      links[this.VV.vid][vView.VV.vid] = this.VV.$el.children.length;
+      this.VV.$el.children.push(child);
+      return this.update(silent);
     };
 
-    VirtualView.prototype.prepend = function(vView) {
+    VirtualView.prototype.prepend = function(vView, silent) {
       var child, key, links_connected;
-      if (typeof vView === 'string' || vView instanceof String) {
+      if (isString(vView)) {
         child = new VText(vView);
       } else if (!((child = vView.$el) && isVNode(child))) {
         return error(1);
       }
       vView.parent = this;
-      links_connected = links[this.id];
+      links_connected = links[this.VV.vid];
       for (key in links_connected) {
         if (!links_connected.hasOwnProperty(key)) {
           return;
@@ -135,24 +150,28 @@
         links_connected[key]++;
       }
       links_connected[vView.id] = 0;
-      this.$el.children.unshift(child);
-      return this.update();
+      this.VV.$el.children.unshift(child);
+      return this.update(silent);
     };
 
-    VirtualView.prototype.update = function() {
+    VirtualView.prototype.update = function(silent) {
       if (VV === this) {
-        this.el = patch(this.el, diff(this.$elPrevious, this.$el));
-        return this.$elPrevious = clone(this.$el);
+        if (silent) {
+          return;
+        }
+        this.el = patch(this.el, diff(this.VV.$elPrevious, this.VV.$el));
+        this.VV.$elPrevious = clone(this.VV.$el);
       } else {
-        return VV.update();
+        VV.update(silent);
       }
+      return this;
     };
 
     VirtualView.prototype.remove = function() {
       var remove;
       if (this.parent) {
-        remove = links[this.parent.id][this.id];
-        this.parent.$el.children.splice(remove, 1);
+        remove = links[this.parent.VV.vid][this.VV.vid];
+        this.parent.VV.$el.children.splice(remove, 1);
         return this.parent.update();
       } else {
         return this.el.parentNode.removeChild(this.el);
@@ -162,8 +181,15 @@
     error = function(code) {
       console.log("Error code: " + code);
       if (code === 1) {
-        return console.log('Only a "string" or a "VirtualNode" is a valid input');
+        console.log('Only a "string" or a "VirtualNode" is a valid input');
       }
+      if (code === 2) {
+        return console.log('Only a "string" is a valid input');
+      }
+    };
+
+    isString = function(string) {
+      return typeof string === 'string' || string instanceof String;
     };
 
     return VirtualView;
