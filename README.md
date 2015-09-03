@@ -141,6 +141,8 @@ Up next:
 
 - Remove bug (multiple children cannot be removed out of order yet)
 
+- Reverse the silent argument, all virtual dom manipulations will be 'silent' update() has to be called to update the DOM or an argument `silent: false`.
+
 - [this.children]() This function will allow you to set a VirtualNode's children all at once.
 
 - [this.toggleClass]() Toggles one or multiple classes on or off.
