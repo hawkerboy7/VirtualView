@@ -8,6 +8,32 @@
 
 
 
+## Root Node
+You can provide an argument for `vitrual-view` allowing for a single Root Node.
+```coffeescript
+# Require virtual-view
+VirtualView = require 'virtual-view'
+
+# Create the class Main
+class Main extends VirtualView
+
+	# Set selector
+	selector: '#main'
+
+
+# Main will now be a 'root' Virtual Node and also have the .el available
+main = new Main root: true
+
+main.el # => Contains the DOM node
+
+# SubOne will be a regular Virtual Node
+subOne = new Main
+
+subOne.el # => Undefined
+
+```
+
+
 ## Support
 
 The `virtual-view` provides you with the following
