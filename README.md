@@ -21,12 +21,12 @@ class Main extends VirtualView
 	selector: '#main'
 
 
-# Main will now be a 'root' Virtual Node and also have the .el available
+# Main will now be a 'root' Virtual View and also have the .el available
 main = new Main root: true
 
 main.el # => Contains the DOM node
 
-# sub will be a regular Virtual Node
+# sub will be a regular Virtual View
 sub = new Main
 
 sub.el # => Undefined
@@ -110,7 +110,7 @@ class Main extends VirtualView
 		# Add a string
 		@append 'append-2 (text)'
 
-		# Add a Virtual Node
+		# Add a Virtual View
 		@prepend new Primary
 
 		# Add multiple classes
@@ -146,4 +146,4 @@ Up next:
 - [this.remove](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L168) still needs to be analized. It's not at a maximum effencientcy, also I am quite sure not everything is removed from memory completely.<br>
 After removal all event listeners should be removed as well (this is still to be checked).
 
-- Update the render procedure using Thunks or another method to prevent the diff function from checking Virtual Nodes that didn't change for sure
+- Update the render procedure using Thunks or another method to prevent the diff function from checking Virtual Views that didn't change for sure
