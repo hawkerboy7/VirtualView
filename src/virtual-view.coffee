@@ -1,14 +1,14 @@
 #--------------------------------------------------
 #	Virutal Dom
 #--------------------------------------------------
-
+clone                = require 'clone'
 window.d             = require('dom-delegator')()
 window.h             = require 'virtual-dom/h'
 window.diff          = require 'virtual-dom/diff'
 window.patch         = require 'virtual-dom/patch'
 window.VText         = require 'virtual-dom/vnode/vtext'
+window.isVNode       = require 'virtual-dom/vnode/is-vnode'
 window.createElement = require 'virtual-dom/create-element'
-
 
 
 
@@ -20,7 +20,7 @@ class VirtualView
 	VVclasses : []
 
 
-	constructor: ->
+	constructor: (rootNode) ->
 
 		# Set and increase id counter
 		@id = counter++
@@ -30,13 +30,6 @@ class VirtualView
 
 		# Define properties if not defined
 		this.properties = this.properties || {}
-
-		# Main view
-		if @id is 1
-
-			# Virtual view storage
-			window.VV =
-				main: @
 
 		# Check if events have been set
 		if events = this.events
@@ -61,11 +54,23 @@ class VirtualView
 				# Store function
 				this.properties["ev-#{key}"] = func
 
-		# Create VirtualNode and the DOM element
-		@el = createElement @$el = h this.selector, this.properties
+		# Create VirtualNode
+		@$el = h this.selector, this.properties
 
 		# Store classes
 		@VVclasses = @$el.properties.className.split ' ' if @$el.properties.className
+
+		# Root Node extra's
+		if rootNode
+
+			# Store clone from $el for later use
+			@$elPrevious = clone @$el
+
+			# Store root VirtualNode
+			window.VV = @
+
+			# Provide a DOM node
+			@el = createElement @$el
 
 		# Run initialize if set
 		@initialize() if @initialize
@@ -122,9 +127,7 @@ class VirtualView
 		@update()
 
 
-	append: (vView, silent) =>
-
-		console.log 'silent: ', silent
+	append: (vView) =>
 
 		# Check if string is provided
 		if typeof vView is 'string' or vView instanceof String
@@ -132,7 +135,9 @@ class VirtualView
 			# Create VirtualNode text
 			child = new VText vView
 
-		else return if not (child = vView?.$el)
+		else if not ((child = vView.$el) and isVNode(child))
+
+			return error 1
 
 		# Provide the vView with a parent
 		vView.parent = @
@@ -148,6 +153,16 @@ class VirtualView
 
 
 	prepend: (vView) =>
+
+		# Check if string is provided
+		if typeof vView is 'string' or vView instanceof String
+
+			# Create VirtualNode text
+			child = new VText vView
+
+		else if not ((child = vView.$el) and isVNode(child))
+
+			return error 1
 
 		# Provide the vView with a parent
 		vView.parent = @
@@ -168,7 +183,7 @@ class VirtualView
 		links_connected[vView.id] = 0
 
 		# Prepend a virtual child
-		@$el.children.unshift vView.$el
+		@$el.children.unshift child
 
 		# Update (v)DOM
 		@update()
@@ -176,13 +191,18 @@ class VirtualView
 
 	update: =>
 
-		# Update the (v)DOM
-		@el = patch @el, diff @el, @$el
+		if VV is @
 
-		# Update parent
-		VV?.main?.update() if VV?.main isnt @
+			# Update (v)DOM
+			@el = patch @el, diff @$elPrevious, @$el
 
-		@
+			# Store clone of 'old' $el
+			@$elPrevious = clone @$el
+
+		else
+
+			# Update rootNode
+			VV.update()
 
 
 	remove: =>
@@ -206,7 +226,10 @@ class VirtualView
 
 	error = (code)->
 
-		console.log 'Error code:', 1
+		console.log "Error code: #{code}"
+
+		console.log 'Only a "string" or a "VirtualNode" is a valid input' if code is 1
+
 
 
 
