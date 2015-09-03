@@ -26,11 +26,10 @@ main = new Main root: true
 
 main.el # => Contains the DOM node
 
-# SubOne will be a regular Virtual Node
-subOne = new Main
+# sub will be a regular Virtual Node
+sub = new Main
 
-subOne.el # => Undefined
-
+sub.el # => Undefined
 ```
 
 
@@ -83,18 +82,14 @@ class Primary extends VirtualView
 
 	selector: '#primary.make-me-the-first-child'
 
+	events:
+		'click' : 'remove'
+
 
 	initialize: ->
 
 		# Add a string
 		@append 'I am Primary (the first child)'
-
-		setTimeout(=>
-
-			# Remove this Virtual Node
-			@remove()
-
-		,8000)
 
 
 
