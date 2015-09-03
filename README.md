@@ -8,12 +8,37 @@
 
 
 
+## Root Node
+You can provide an argument for `vitrual-view` allowing for a single Root Node.
+```coffeescript
+# Require virtual-view
+VirtualView = require 'virtual-view'
+
+# Create the class Main
+class Main extends VirtualView
+
+	# Set selector
+	selector: '#main'
+
+
+# Main will now be a 'root' Virtual View and also have the .el available
+main = new Main root: true
+
+main.el # => Contains the DOM node
+
+# sub will be a regular Virtual View
+sub = new Main
+
+sub.el # => Undefined
+```
+
+
 ## Support
 
 The `virtual-view` provides you with the following
 
 - [el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L65)<br>
-	Contains the DOM node
+	Contains the DOM node (which should be appended or prepended to the document.body)
 
 - [$el](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L65)<br>
 	Contains the VirtualDOM node representation ([VirtualNode](https://github.com/Matt-Esch/virtual-dom/blob/master/virtual-hyperscript/README.md))
@@ -30,16 +55,17 @@ The `virtual-view` provides you with the following
 	This function allows you to remove a single class or multiple classes from the virtual tree. It removes them if they are found.
 
 - [this.append](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L125)<br>
-	This function allows you to append a child to the virtual tree. It should either be a [VText](https://github.com/Matt-Esch/virtual-dom#example---creating-a-vtree-using-the-objects-directly) or an $el ([VirtualNode](https://github.com/Matt-Esch/virtual-dom/blob/master/virtual-hyperscript/README.md))
+	This function allows you to append a child to the virtual tree. It should either be a [VText](https://github.com/Matt-Esch/virtual-dom#example---creating-a-vtree-using-the-objects-directly) or a VirtualView
 
 - [this.prepend](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L140)<br>
 	Same as append only this will prepend.
 
 - [this.update](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L159)<br>
-	This function allows you to re-render the $el. You can call this after you've changed it's atributes. However classes should be changed trough the addClass and removeClass functions.
+	This function allows you to re-render the Root Node. You can call this after you've changed it's atributes. However classes should be changed trough the addClass and removeClass functions.
 
 - [this.remove](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L168)<br>
 	Removes element from the DOM and VirtualDOM
+
 
 
 ## Example
@@ -52,29 +78,25 @@ VirtualView = require 'virtual-view'
 
 
 
-class Secondary extends VirtualView
+class Primary extends VirtualView
 
-	selector: '#secondary.make-me-the-first-child'
+	selector: '#primary.make-me-the-first-child'
+
+	events:
+		'click' : 'remove'
 
 
 	initialize: ->
 
-		# Add a VText
-		@append new VText 'I am Secondary (the first child)'
-
-		setTimeout(=>
-
-			# Remove this Virtual Node
-			@remove()
-
-		,8000)
+		# Add a string
+		@append 'I am Primary (the first child)'
 
 
 
 class Main extends VirtualView
 
 	# Set selector
-	selector : '#main'
+	selector : '#main.show-me'
 
 
 	initialize: ->
@@ -82,14 +104,14 @@ class Main extends VirtualView
 		# Add a single class
 		@addClass 'this-class'
 
-		# Add a VText
-		@append new VText 'append-1'
+		# Add a string
+		@append 'append-1 (text)'
 
-		# Add a VText
-		@append new VText 'append-2'
+		# Add a string
+		@append 'append-2 (text)'
 
-		# Add a Virtual Node
-		@prepend new Secondary
+		# Add a Virtual View
+		@prepend new Primary
 
 		# Add multiple classes
 		@addClass 'test1 test2 test3 test4'
@@ -108,14 +130,20 @@ class Main extends VirtualView
 module.exports = Main
 
 
+
 # Prepend the main to the body
-document.body.insertBefore (new Main).el, document.body.firstChild
+document.body.insertBefore (new Main root: true).el, document.body.firstChild
 ```
 
 
+## It's not done yet!
+Up next:
 
-#### Obviously it's not done =)
+- [this.children]() This function will allow you to set a VirtualNode's children all at once.
 
-this.remove still needs to be analized. It's not at a maximum effencientcy, also i am quite sure not everything is removed from memory completely.
+- [this.toggleClass]() Toggles one or multiple classes on or off.
 
-after removal all events should be removed as well (this should be checked).
+- [this.remove](https://github.com/hawkerboy7/virtual-view/blob/master/src/virtual-view.coffee#L168) still needs to be analized. It's not at a maximum effencientcy, also I am quite sure not everything is removed from memory completely.<br>
+After removal all event listeners should be removed as well (this is still to be checked).
+
+- Update the render procedure using Thunks or another method to prevent the diff function from checking Virtual Views that didn't change for sure

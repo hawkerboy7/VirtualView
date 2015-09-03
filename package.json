@@ -1,9 +1,10 @@
 {
   "name": "virtual-view",
-  "version": "0.2.0-alpha",
+  "version": "0.2.0",
   "description": "A view for the virtual dom similar to a backbone view",
   "main": "build/virtual-view.js",
   "dependencies": {
+    "clone": "^1.0.2",
     "dom-delegator": "^13.1.0",
     "virtual-dom": "^2.1.1"
   },

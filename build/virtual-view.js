@@ -1,6 +1,8 @@
 (function() {
-  var VirtualView,
+  var VirtualView, clone,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  clone = require('clone');
 
   window.d = require('dom-delegator')();
 
@@ -12,10 +14,12 @@
 
   window.VText = require('virtual-dom/vnode/vtext');
 
+  window.isVNode = require('virtual-dom/vnode/is-vnode');
+
   window.createElement = require('virtual-dom/create-element');
 
   VirtualView = (function() {
-    var counter, links;
+    var counter, error, links;
 
     links = {};
 
@@ -23,7 +27,7 @@
 
     VirtualView.prototype.VVclasses = [];
 
-    function VirtualView() {
+    function VirtualView(rootNode) {
       this.remove = bind(this.remove, this);
       this.update = bind(this.update, this);
       this.prepend = bind(this.prepend, this);
@@ -34,11 +38,6 @@
       this.id = counter++;
       links[this.id] = {};
       this.properties = this.properties || {};
-      if (this.id === 1) {
-        window.VV = {
-          main: this
-        };
-      }
       if (events = this.events) {
         for (key in events) {
           handler = events[key];
@@ -50,9 +49,14 @@
           this.properties["ev-" + key] = func;
         }
       }
-      this.el = createElement(this.$el = h(this.selector, this.properties));
+      this.$el = h(this.selector, this.properties);
       if (this.$el.properties.className) {
         this.VVclasses = this.$el.properties.className.split(' ');
+      }
+      if (rootNode) {
+        this.$elPrevious = clone(this.$el);
+        window.VV = this;
+        this.el = createElement(this.$el);
       }
       if (this.initialize) {
         this.initialize();
@@ -103,28 +107,44 @@
     };
 
     VirtualView.prototype.append = function(vView) {
+      var child;
+      if (typeof vView === 'string' || vView instanceof String) {
+        child = new VText(vView);
+      } else if (!((child = vView.$el) && isVNode(child))) {
+        return error(1);
+      }
       vView.parent = this;
       links[this.id][vView.id] = this.$el.children.length;
-      this.$el.children.push(vView.$el);
+      this.$el.children.push(child);
       return this.update();
     };
 
     VirtualView.prototype.prepend = function(vView) {
-      var key;
-      vView.parent = this;
-      for (key in links) {
-        links[this.id][key]++;
+      var child, key, links_connected;
+      if (typeof vView === 'string' || vView instanceof String) {
+        child = new VText(vView);
+      } else if (!((child = vView.$el) && isVNode(child))) {
+        return error(1);
       }
-      links[this.id][vView.id] = 0;
-      this.$el.children.unshift(vView.$el);
+      vView.parent = this;
+      links_connected = links[this.id];
+      for (key in links_connected) {
+        if (!links_connected.hasOwnProperty(key)) {
+          return;
+        }
+        links_connected[key]++;
+      }
+      links_connected[vView.id] = 0;
+      this.$el.children.unshift(child);
       return this.update();
     };
 
     VirtualView.prototype.update = function() {
-      var ref;
-      this.el = patch(this.el, diff(this.el, this.$el));
-      if ((typeof VV !== "undefined" && VV !== null ? VV.main : void 0) !== this) {
-        return typeof VV !== "undefined" && VV !== null ? (ref = VV.main) != null ? ref.update() : void 0 : void 0;
+      if (VV === this) {
+        this.el = patch(this.el, diff(this.$elPrevious, this.$el));
+        return this.$elPrevious = clone(this.$el);
+      } else {
+        return VV.update();
       }
     };
 
@@ -136,6 +156,13 @@
         return this.parent.update();
       } else {
         return this.el.parentNode.removeChild(this.el);
+      }
+    };
+
+    error = function(code) {
+      console.log("Error code: " + code);
+      if (code === 1) {
+        return console.log('Only a "string" or a "VirtualNode" is a valid input');
       }
     };
 
