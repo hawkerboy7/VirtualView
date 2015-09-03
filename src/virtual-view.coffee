@@ -127,7 +127,7 @@ class VirtualView
 		@update()
 
 
-	append: (vView) =>
+	append: (vView, silent) =>
 
 		# Check if string is provided
 		if typeof vView is 'string' or vView instanceof String
@@ -149,10 +149,10 @@ class VirtualView
 		@$el.children.push child
 
 		# Update (v)DOM
-		@update()
+		@update silent
 
 
-	prepend: (vView) =>
+	prepend: (vView, silent) =>
 
 		# Check if string is provided
 		if typeof vView is 'string' or vView instanceof String
@@ -186,12 +186,15 @@ class VirtualView
 		@$el.children.unshift child
 
 		# Update (v)DOM
-		@update()
+		@update silent
 
 
-	update: =>
+	update: (silent) =>
 
 		if VV is @
+
+			# Don't patch the (v)DOM
+			return if silent
 
 			# Update (v)DOM
 			@el = patch @el, diff @$elPrevious, @$el
@@ -202,7 +205,9 @@ class VirtualView
 		else
 
 			# Update rootNode
-			VV.update()
+			VV.update silent
+
+		@
 
 
 	remove: =>

@@ -106,7 +106,7 @@
       return this.update();
     };
 
-    VirtualView.prototype.append = function(vView) {
+    VirtualView.prototype.append = function(vView, silent) {
       var child;
       if (typeof vView === 'string' || vView instanceof String) {
         child = new VText(vView);
@@ -116,10 +116,10 @@
       vView.parent = this;
       links[this.id][vView.id] = this.$el.children.length;
       this.$el.children.push(child);
-      return this.update();
+      return this.update(silent);
     };
 
-    VirtualView.prototype.prepend = function(vView) {
+    VirtualView.prototype.prepend = function(vView, silent) {
       var child, key, links_connected;
       if (typeof vView === 'string' || vView instanceof String) {
         child = new VText(vView);
@@ -136,16 +136,20 @@
       }
       links_connected[vView.id] = 0;
       this.$el.children.unshift(child);
-      return this.update();
+      return this.update(silent);
     };
 
-    VirtualView.prototype.update = function() {
+    VirtualView.prototype.update = function(silent) {
       if (VV === this) {
+        if (silent) {
+          return;
+        }
         this.el = patch(this.el, diff(this.$elPrevious, this.$el));
-        return this.$elPrevious = clone(this.$el);
+        this.$elPrevious = clone(this.$el);
       } else {
-        return VV.update();
+        VV.update(silent);
       }
+      return this;
     };
 
     VirtualView.prototype.remove = function() {
